@@ -1,0 +1,4 @@
+PROG = webifd
+MODULE_CFLAGS = -DMG_ENABLE_HTTP_STREAMING_MULTIPART
+# -DMY_DEBUG
+include config.mk
