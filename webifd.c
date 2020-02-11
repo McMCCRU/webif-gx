@@ -97,6 +97,7 @@ static void *addr_shm = NULL;
 static proc_data_t *fwp = NULL;
 static const char *s_http_port = HTTP_PORT;
 static struct mg_serve_http_opts s_http_server_opts;
+static int count_reboot = 0;
 
 /* default config */
 static struct device_settings d_settings[] = {
@@ -267,6 +268,7 @@ static void handle_upload(struct mg_connection *nc, int ev, void *p)
 				fwp->total_size = 0;
 			}
 			nc->flags |= MG_F_SEND_AND_CLOSE;
+			fflush(data->fp);
 			fclose(data->fp);
 			free(data);
 			nc->user_data = NULL;
@@ -380,12 +382,33 @@ static void handle_reset(struct mg_connection *nc, struct http_message *hm)
 		(unsigned long)hm->body.len, (int)hm->body.len, hm->body.p);
 }
 
+#ifndef MY_DEBUG
+void* system_reboot(void *arg)
+{
+	sleep(2);
+	system("sync && reboot");
+	return 0;
+	arg = arg;
+}
+#endif
+
 static void handle_reboot(struct mg_connection *nc, struct http_message *hm)
 {
 #ifdef MY_DEBUG
-	printf("Reboot....\n");
+	printf("Reboot...\n");
 #else
-	system("reboot");
+	if(!count_reboot) {
+		pthread_t thread;
+		int status;
+
+		status = pthread_create(&thread, NULL, system_reboot, NULL);
+		if (status != 0) {
+			printf("main error: can't create thread, status = %d\n", status);
+			goto cont;
+		}
+	}
+	count_reboot++;
+cont:
 #endif
 	mg_printf(nc, "HTTP/1.1 200 OK\r\nContent-Length: %lu\r\n\r\n%.*s",
 		(unsigned long)hm->body.len, (int)hm->body.len, hm->body.p);
@@ -417,7 +440,8 @@ void* fw_update(void *arg)
 	static unsigned char buff2[BUFSIZE] = { 0, };
 	int fd_d = -1, fd_f = -1;
 #endif
-
+	sync();
+	sleep(1);
 	memset(p->msg, 0, BUF_SIZE);
 #ifndef MY_DEBUG
 	fd_f = open(FW_FILE, O_RDONLY);
@@ -458,6 +482,8 @@ void* fw_update(void *arg)
 	for (i = 1; i <= (int)erase_count; i++) {
 		up_progress(p, -1, i, erase_count);
 #ifndef MY_DEBUG
+		ioctl(fd_d, MEMUNLOCK, &e);
+#if 0
 		if (ioctl(fd_d, MEMUNLOCK, &e) < 0) {
 			close(fd_f);
 			close(fd_d);
@@ -465,6 +491,7 @@ void* fw_update(void *arg)
 				e.start, MTD_UPDATE);
 			goto err;
 		}
+#endif
 		if (ioctl(fd_d, MEMERASE, &e) < 0) {
 			close(fd_f);
 			close(fd_d);
@@ -552,34 +579,31 @@ static int run_update(proc_data_t *p)
 	return 0;
 }
 
-static int count_reboot = 0;
 
-static void handle_update(struct mg_connection *nc, struct http_message *hm)
+static void handle_update(struct mg_connection *nc)
 {
 #ifdef MY_DEBUG
 	printf("Update....\n");
 #endif
 
-	if(!fwp->lock)
+	if(!fwp->lock && !file_valid)
 		run_update(fwp);
 
-	if(fwp->update_complite) {
-		mg_printf(nc, "HTTP/1.1 200 OK\r\nContent-Length: %lu\r\n\r\n%.*s",
-				(unsigned long)hm->body.len, (int)hm->body.len, hm->body.p);
-		if((0 < count_reboot) && (count_reboot < 2))
+	if(fwp->update_complite && !file_valid) {
+		if((1 < count_reboot) && (count_reboot < 3)) {
 #ifdef MY_DEBUG
 			printf("Sync && Reboot...\n");
 #else
 			system("sync && reboot");
 #endif
+		}
 		count_reboot++;
-		return;
 	}
 
 	// Use chunked encoding in order to avoid calculating Content-Length
 	mg_printf(nc, "%s", "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n");
 
-	if(file_valid < 0)
+	if((file_valid < 0) || fwp->update_complite)
 		mg_printf_http_chunk(nc, "{ \"upresult\": \"\" }");
 	else {
 		mg_printf_http_chunk(nc, "{ \"upresult\": \"%s\" }", fwp->msg);
@@ -658,7 +682,7 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data)
 			} else if (mg_vcmp(&hm->uri, "/reboot") == 0) {
 				handle_reboot(nc, hm);
 			} else if (mg_vcmp(&hm->uri, "/update") == 0) {
-				handle_update(nc, hm);
+				handle_update(nc);
 			} else if (mg_vcmp(&hm->uri, "/info") == 0) {
 				handle_get_info(nc);
 			} else {

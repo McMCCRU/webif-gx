@@ -60,10 +60,6 @@
       box-shadow: 0px 6px 6px rgba(0, 0, 0, 0.6);
    }
 
-   .progress {
-      height: 2px;
-   }
-
    .spinner-icon {
       position: absolute;
       right: 20px;
@@ -81,9 +77,9 @@
         '<div role="spinner">' +
         '<div class="spinner-icon"></div>' +
         '</div>' +
-        '<img class="img-circle" src="satip.jpg">' +
+        '<img class="img-circle" src="satip.jpg"> </img>' +
         '<p class="lead" style="text-align:center">Please wait...</p>' +
-        '<div class="progress" role="bar">' +
+        '<div role="bar">' +
         '</div>' +
         '</div>';
 
@@ -95,7 +91,7 @@
        NProgress.start();
        setInterval(function() {
           location.reload();
-       }, 60000);
+       }, 20000);
     }
 
     function update_form() {
@@ -224,6 +220,10 @@
           success: function(json) {
             $('#upresult').text(json.upresult);
             if(json.upresult.indexOf('Reboot') == 0) {
+               rebootTime();
+               form.reload();
+            }
+            if(json.upresult.indexOf('Problem') == 0) {
                rebootTime();
                form.reload();
             }
