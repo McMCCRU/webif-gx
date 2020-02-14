@@ -296,6 +296,7 @@ static int config_file(int cmd)
 			fprintf(fp, "%s=\"%s\"\n", s_settings[i].name, s_settings[i].setting);
 			i++;
 		}
+		fflush(fp);
 	} else {
 		fp = fopen(CFG_FILE, "r");
 		if(!fp)
