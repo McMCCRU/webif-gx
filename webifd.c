@@ -93,7 +93,9 @@ static unsigned int cpu_ratio;
 static CpuOccupy cpu_stat1;
 static CpuOccupy cpu_stat2;
 static int file_valid = -1;
+#ifdef USE_MMAP
 static void *addr_shm = NULL;
+#endif
 static proc_data_t *fwp = NULL;
 static const char *s_http_port = HTTP_PORT;
 static struct mg_serve_http_opts s_http_server_opts;
@@ -484,15 +486,6 @@ void* fw_update(void *arg)
 		up_progress(p, -1, i, erase_count);
 #ifndef MY_DEBUG
 		ioctl(fd_d, MEMUNLOCK, &e);
-#if 0
-		if (ioctl(fd_d, MEMUNLOCK, &e) < 0) {
-			close(fd_f);
-			close(fd_d);
-			snprintf(p->msg, BUF_SIZE, "Problem: Unlock error at 0x%08X on %s!",
-				e.start, MTD_UPDATE);
-			goto err;
-		}
-#endif
 		if (ioctl(fd_d, MEMERASE, &e) < 0) {
 			close(fd_f);
 			close(fd_d);
@@ -703,12 +696,17 @@ int main(void)
 	struct mg_mgr mgr;
 	struct mg_connection *nc;
 
+#ifdef USE_MMAP
 	addr_shm = mmap(0, SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 	if(!addr_shm) {
 		printf("Problem mmap()...\n");
 		return -1;
 	}
 	fwp = (proc_data_t *)addr_shm;
+#else
+	proc_data_t fwt = { 0, };
+	fwp = &fwt;
+#endif
 	fwp->update_complite = 0;
 	fwp->lock = 0;
 	fwp->start_addr = 0;
@@ -731,7 +729,9 @@ int main(void)
 		mg_mgr_poll(&mgr, 1000);
 	}
 	mg_mgr_free(&mgr);
+#ifdef USE_MMAP
 	munmap(addr_shm, SHM_SIZE);
+#endif
 
 	return 0;
 }

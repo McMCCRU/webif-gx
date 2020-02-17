@@ -1,5 +1,5 @@
-CC = /opt/goxceed/csky-linux-tools-i386-uclibc-20170724/bin/csky-linux-gcc
-# CC = gcc
+# CC = /opt/goxceed/csky-linux-tools-i386-uclibc-20170724/bin/csky-linux-gcc
+CC = gcc
 SOURCES = $(PROG).c pt.c mongoose.c
 CFLAGS = -g -W -Wall -Werror -I./ -Wno-unused-function $(CFLAGS_EXTRA) $(MODULE_CFLAGS)
 
