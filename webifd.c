@@ -104,6 +104,7 @@ static int count_reboot = 0;
 /* default config */
 static struct device_settings d_settings[] = {
 	{ "SATIP_OPT", "" },
+	{ "SATIP_RESTART", "0" },
 	{ "FE_PROFILE", "" },
 	{ "HW_ADDR", "" },
 	{ "LOCAL_IP", "192.168.30.111" },
@@ -121,6 +122,7 @@ static struct device_settings d_settings[] = {
 /* copy default config */
 static struct device_settings s_settings[] = {
 	{ "SATIP_OPT", "" },
+	{ "SATIP_RESTART", "0" },
 	{ "FE_PROFILE", "" },
 	{ "HW_ADDR", "" },
 	{ "LOCAL_IP", "192.168.30.111" },
@@ -385,6 +387,17 @@ static void handle_reset(struct mg_connection *nc, struct http_message *hm)
 		(unsigned long)hm->body.len, (int)hm->body.len, hm->body.p);
 }
 
+static void handle_resatip(struct mg_connection *nc, struct http_message *hm)
+{
+#ifdef MY_DEBUG
+	printf("Restart minisatip....\n");
+#else
+	system("/etc/rcS.d/S98minisatip restart");
+#endif
+	mg_printf(nc, "HTTP/1.1 200 OK\r\nContent-Length: %lu\r\n\r\n%.*s",
+		(unsigned long)hm->body.len, (int)hm->body.len, hm->body.p);
+}
+
 #ifndef MY_DEBUG
 void* system_reboot(void *arg)
 {
@@ -473,6 +486,8 @@ void* fw_update(void *arg)
 		snprintf(p->msg, BUF_SIZE, "Problem: File firmware is big!");
 		goto err;
 	}
+
+	system("/etc/rcS.d/S98minisatip stop");
 #else
 	info.erasesize = 64 * 1024;
 	info.size = p->total_size;
@@ -671,6 +686,8 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data)
 		case MG_EV_HTTP_REQUEST:
 			if (mg_vcmp(&hm->uri, "/save") == 0) {
 				handle_save(nc, hm);
+			} else if (mg_vcmp(&hm->uri, "/restart_satip") == 0) {
+				handle_resatip(nc, hm);
 			} else if (mg_vcmp(&hm->uri, "/reset") == 0) {
 				handle_reset(nc, hm);
 			} else if (mg_vcmp(&hm->uri, "/reboot") == 0) {
@@ -704,7 +721,8 @@ int main(void)
 	}
 	fwp = (proc_data_t *)addr_shm;
 #else
-	proc_data_t fwt = { 0, };
+	proc_data_t fwt;
+	memset(&fwt, 0, sizeof(proc_data_t));
 	fwp = &fwt;
 #endif
 	fwp->update_complite = 0;
