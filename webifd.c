@@ -116,6 +116,7 @@ static struct device_settings d_settings[] = {
 	{ "TIMEZONE", "MSK-3" },
 	{ "NTP_SERVER", "0.pool.ntp.org" },
 	{ "PASS_ADMIN", "" },
+	{ "EN_ANT_PWR", "" },
 	{ NULL, {0,} }
 };
 
@@ -134,6 +135,7 @@ static struct device_settings s_settings[] = {
 	{ "TIMEZONE", "MSK-3" },
 	{ "NTP_SERVER", "0.pool.ntp.org" },
 	{ "PASS_ADMIN", "" },
+	{ "EN_ANT_PWR", "" },
 	{ NULL, {0,} }
 };
 
@@ -628,7 +630,9 @@ static void handle_ssi_call(struct mg_connection *nc, const char *param)
 	config_file(0);
 
 	while(s_settings[i].name) {
-		if (strcmp(param, s_settings[i].name) == 0)
+		if (strcmp("EN_ANT_PWR", param) == 0) {
+			if (strcmp(s_settings[i].setting, "on") == 0) mg_printf(nc, "checked");
+		} else if (strcmp(param, s_settings[i].name) == 0)
 			mg_printf_html_escape(nc, "%s", s_settings[i].setting);
 		i++;
 	}

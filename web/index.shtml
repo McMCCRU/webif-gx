@@ -123,6 +123,7 @@
        $('#a11').prop('disabled', true);
        $('#a12').prop('disabled', true);
        $('#a13').prop('disabled', true);
+       $('#a14').prop('disabled', true);
     }
 
     function updateProgress(evt) {
@@ -161,6 +162,7 @@
     $(document).on('submit', '#settings_form', function() {
       var data = {};
       $('#settings_form [name]').each(function(index, el) {
+        if ($(el).attr('type') == 'checkbox' && !$(el).is(':checked')) return;
         data[$(el).attr('name')] = $(el).val();
       });
       $('#result').text('');
@@ -358,6 +360,10 @@
     <tr><td>
       <label>Admin password:</label></td> <td><input type="text4"
         name="PASS_ADMIN" value="<!--#call PASS_ADMIN -->" id="a12" >
+    </td></tr>
+    <tr><td>
+      <label>ANT. Power ON:</label></td> <td><input type="checkbox"
+        name="EN_ANT_PWR" value="on" id="a14" <!--#call EN_ANT_PWR --> >
     </td></tr>
     </table>
     <div style="margin: 1em 0;">
