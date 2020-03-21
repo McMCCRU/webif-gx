@@ -71,6 +71,14 @@
    #updform {
       display:none;
    }
+
+   #is_dvbt1 {
+      display:<!--#call is_dvbt -->;
+   }
+
+   #is_dvbt2 {
+      display:<!--#call is_dvbt -->;
+   }
 </style>
 <link href="nprogress.css" rel="stylesheet" />
 <script src="jquery-1.11.3.min.js"></script>
@@ -362,8 +370,9 @@
         name="PASS_ADMIN" value="<!--#call PASS_ADMIN -->" id="a12" >
     </td></tr>
     <tr><td>
-      <label>ANT. Power ON:</label></td> <td><input type="checkbox"
-        name="EN_ANT_PWR" value="on" id="a14" <!--#call EN_ANT_PWR --> >
+    <div id="is_dvbt1">
+      <label>ANT. Power ON:</label></div></td> <td><div id="is_dvbt2"><input type="checkbox"
+        name="EN_ANT_PWR" value="on" id="a14" <!--#call EN_ANT_PWR --> ></div>
     </td></tr>
     </table>
     <div style="margin: 1em 0;">

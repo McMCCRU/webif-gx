@@ -25,6 +25,7 @@
 #include "mongoose.h"
 
 #ifdef MY_DEBUG
+#define TYP_FILE	"./is_dvbs.lock"
 #define FW_FILE		"./firmware.bin"
 #define CFG_FILE	"./config.conf"
 #define VER_FILE	"./version"
@@ -32,6 +33,7 @@
 #define ROOT_DIR	"./web"
 #define HTTP_PORT	"8000"
 #else
+#define TYP_FILE	"/var/is_dvbs.lock"
 #define FW_FILE		"/var/firmware.bin"
 #define CFG_FILE	"/home/gx/etc/config.conf"
 #define VER_FILE	"/etc/version"
@@ -143,6 +145,18 @@ static void xfgets(char *str, int size, FILE *in)
 {
 	if (fgets(str, size, in) == NULL)
 		fprintf(stderr, "%s: Error in reading or end of file.\n", __func__);
+}
+
+static int check_flock(char *fname)
+{
+	FILE *fd;
+
+	fd = fopen (fname, "r");
+	if(!fd)
+		return 0;
+
+	fclose(fd);
+	return 1;
 }
 
 static void mem_occupy_get(MemOccupy *mem)
@@ -626,8 +640,13 @@ static void handle_update(struct mg_connection *nc)
 static void handle_ssi_call(struct mg_connection *nc, const char *param)
 {
 	int i = 0;
+	int is_dvbs = check_flock(TYP_FILE);
 
 	config_file(0);
+
+	if (strcmp("is_dvbt", param) == 0) {
+		mg_printf(nc, "%s", is_dvbs ? "none" : "block");
+	}
 
 	while(s_settings[i].name) {
 		if (strcmp("EN_ANT_PWR", param) == 0) {
