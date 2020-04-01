@@ -291,7 +291,7 @@
     <br>
     <fieldset>
       <legend>Sysinfo</legend>
-      <table border="0" width=400>
+      <table border="0" width=480>
       <tr><td><label>Version FW:</label></td> <td><span id="version">&nbsp;</span></td></tr>
       <tr><td><label>Current time:</label></td> <td><span id="ctime">&nbsp;</span></td></tr>
       <tr><td><label>CPU usage:</label></td> <td><span id="cpu_usage">&nbsp;</span></td></tr>
