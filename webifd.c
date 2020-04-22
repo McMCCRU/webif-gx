@@ -25,7 +25,7 @@
 #include "mongoose.h"
 
 #ifdef MY_DEBUG
-#define TYP_FILE	"./is_dvbs.lock"
+#define TYP_FILE	"./is_dvbt.lock"
 #define FW_FILE		"./firmware.bin"
 #define CFG_FILE	"./config.conf"
 #define VER_FILE	"./version"
@@ -33,7 +33,7 @@
 #define ROOT_DIR	"./web"
 #define HTTP_PORT	"8000"
 #else
-#define TYP_FILE	"/var/is_dvbs.lock"
+#define TYP_FILE	"/var/is_dvbt.lock"
 #define FW_FILE		"/var/firmware.bin"
 #define CFG_FILE	"/home/gx/etc/config.conf"
 #define VER_FILE	"/etc/version"
@@ -640,12 +640,12 @@ static void handle_update(struct mg_connection *nc)
 static void handle_ssi_call(struct mg_connection *nc, const char *param)
 {
 	int i = 0;
-	int is_dvbs = check_flock(TYP_FILE);
+	int is_dvbt = check_flock(TYP_FILE);
 
 	config_file(0);
 
 	if (strcmp("is_dvbt", param) == 0) {
-		mg_printf(nc, "%s", is_dvbs ? "none" : "block");
+		mg_printf(nc, "%s", is_dvbt ? "block" : "none");
 	}
 
 	while(s_settings[i].name) {
