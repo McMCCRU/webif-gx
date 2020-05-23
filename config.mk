@@ -1,11 +1,12 @@
 CC = /opt/goxceed/csky-linux-tools-i386-uclibc-20170724/bin/csky-linux-gcc
+# CC = /opt/goxceed/csky-linux/bin/csky-linux-gcc
 # CC = gcc
 SOURCES = $(PROG).c pt.c mongoose.c
 CFLAGS = -g -W -Wall -Werror -I./ -Wno-unused-function $(CFLAGS_EXTRA) $(MODULE_CFLAGS)
 
 all: $(PROG)
 
-CFLAGS += -pthread
+CFLAGS += -pthread -ldl
 
 ifeq ($(SSL_LIB),openssl)
 CFLAGS += -DMG_ENABLE_SSL -lssl -lcrypto
