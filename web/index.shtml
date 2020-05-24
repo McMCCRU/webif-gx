@@ -18,7 +18,8 @@
       background-color: #fff; border-radius: 1em;
     }
     code { background: #eee; padding: 0 0.3em; border-radius: 0.2em; }
-    label { display: inline-block; min-width: 5em; }
+    label { display: inline-block; min-width: 5em;}
+    .label1 { float: right; margin-right: 3em;}
     input[type="text"] { border: 1px solid #ccc; padding: 0.2em; margin-right: 2em; width: 400px; }
     input[type="text2"] { border: 1px solid #ccc; padding: 0.2em; margin-right: 2em; width: 110px; }
     input[type="text3"] { border: 1px solid #ccc; padding: 0.2em; margin-right: 2em; width: 100px; }
@@ -132,6 +133,7 @@
        $('#a12').prop('disabled', true);
        $('#a13').prop('disabled', true);
        $('#a14').prop('disabled', true);
+       $('#a15').prop('disabled', true);
     }
 
     function updateProgress(evt) {
@@ -331,7 +333,8 @@
     </td></tr>
     <tr><td>
       <label>MAC Address:</label></td> <td><input type="text2"
-        name="HW_ADDR" value="<!--#call HW_ADDR -->" id="a3" >
+        name="HW_ADDR" value="<!--#call HW_ADDR -->" id="a3" ><label class="label1">Ethernet promisc mode:</label></td><td><input type="checkbox"
+        name="EN_ETH_PROMISC" value="yes" id="a15" <!--#call EN_ETH_PROMISC --> >
     </td></tr>
     <tr><td>
       <label>IP Address:</label></td> <td><input type="text3"
